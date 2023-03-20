@@ -4,20 +4,26 @@
   "description": "",
   "version": "0.0.1",
   "engines": {
-    "vscode": "^1.75.0"
+    "vscode": "^1.74.0"
   },
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onLanguage:scss"
+  ],
   "main": "./out/extension.js",
   "contributes": {
-    "commands": [
-      {
-        "command": "sassvarpicker.helloWorld",
-        "title": "Hello World"
+    "configuration": {
+      "title": "SassVarPicker",
+      "properties": {
+        "sassvarpicker.varFilePath": {
+          "type": "string",
+          "default": "",
+          "description": "The variablePath will be used to reference"
+        }
       }
-    ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",

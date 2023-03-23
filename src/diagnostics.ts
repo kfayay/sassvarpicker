@@ -1,4 +1,19 @@
-import * as vscode from "vscode";
+import * as vscode from 'vscode';
+
+/**
+ * 样式变量检测
+ * 检测文件类型：
+ *  scss
+ * 检测时机：
+ *  文档打开
+ *  文档更新
+ * 检测提示：
+ *  变量已定义
+ *  检测级别警告
+ * 边界情况：
+ *  1. 当存在全局禁用检测时
+ *  2. 当存在单条禁用检测时
+ */
 
 function subscribeToDocumentChanges(
   context: vscode.ExtensionContext,
@@ -6,7 +21,7 @@ function subscribeToDocumentChanges(
 ): void {
   vscode.workspace.onDidChangeTextDocument((event) => {
     const document = event.document;
-    if (document.languageId === "scss") {
+    if (document.languageId === 'scss') {
       const diagnostics: vscode.Diagnostic[] = [];
       const regEx = /(\$[a-zA-Z0-9_-]+)\s*:/g;
       const text = document.getText();

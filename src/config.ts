@@ -1,5 +1,5 @@
-import * as fs from 'fs';
-import * as path from 'path';
+import * as fs from "fs";
+import * as path from "path";
 
 interface Config {
   scssPaths: { path: string; alias: string }[];
@@ -30,21 +30,47 @@ interface Config {
  * 最终结果都是输出为空
  */
 
-export function getColorVars() {
-  const config: Config = JSON.parse(
-    fs.readFileSync(path.join(__dirname, '../sassvarpickerc.json'), 'utf-8')
-  );
-  // TODO: 增加错误
+export type ColorVar = {
+  varName: string;
+  value: string;
+  path: string;
+  alias: string;
+};
 
-  const colors: { name: string; value: string }[] = [];
+export type ColorVars = ColorVar[];
 
-  config.scssPaths.forEach(({ path: scssPath }) => {
-    const scssContent = fs.readFileSync(scssPath, 'utf-8');
+
+export function getColorVars(): ColorVars {
+  let config: Config;
+
+  try {
+    config = JSON.parse(
+      fs.readFileSync(path.join(__dirname, "../sassvarpickerc.json"), "utf-8")
+    );
+  } catch (error) {
+    console.error("Error reading config file:", error);
+    return [];
+  }
+
+  const colors: {
+    varName: string;
+    value: string;
+    path: string;
+    alias: string;
+  }[] = [];
+
+  config.scssPaths.forEach(({ path: scssPath, alias }) => {
+    const scssContent = fs.readFileSync(scssPath, "utf-8");
     const colorRegex = /\$([a-zA-Z0-9_-]+):\s*(#[a-zA-Z0-9]+);/g;
 
     let match;
     while ((match = colorRegex.exec(scssContent)) !== null) {
-      colors.push({ name: match[1], value: match[2] });
+      colors.push({
+        varName: match[1],
+        value: match[2],
+        path: scssPath,
+        alias,
+      });
     }
   });
 

@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.refreshDiagnostic = void 0;
 const vscode = require("vscode");
 /**
  * 样式变量检测
@@ -15,23 +16,19 @@ const vscode = require("vscode");
  *  1. 当存在全局禁用检测时
  *  2. 当存在单条禁用检测时
  */
-function subscribeToDocumentChanges(context, colorDiagnostics) {
-    vscode.workspace.onDidChangeTextDocument((event) => {
-        const document = event.document;
-        if (document.languageId === 'scss') {
-            const diagnostics = [];
-            const regEx = /(\$[a-zA-Z0-9_-]+)\s*:/g;
-            const text = document.getText();
-            let match;
-            while ((match = regEx.exec(text))) {
-                const startPos = document.positionAt(match.index);
-                const endPos = document.positionAt(match.index + match[0].length);
-                const range = new vscode.Range(startPos, endPos);
-                const diagnostic = new vscode.Diagnostic(range, `Sass variable "${match[1]}" is defined.`, vscode.DiagnosticSeverity.Information);
-                diagnostics.push(diagnostic);
-            }
-            colorDiagnostics.set(document.uri, diagnostics);
+function refreshDiagnostic(doc, varDiagnostic, colorVars) {
+    const diagnositc = [];
+    const text = doc.getText();
+    const regex = /(\$[a-zA-Z0-9_-]+):\s*(#[a-fA-F0-9]{3,6});/g;
+    let match;
+    while ((match = regex.exec(text))) {
+        const varName = match[1];
+        const varValue = match[2];
+        if (colorVars.find((colorVar) => colorVar.value === varValue)) {
+            diagnositc.push(new vscode.Diagnostic(new vscode.Range(doc.positionAt(match.index), doc.positionAt(match.index + match[0].length)), `${varName} 已定义为 ${varValue}`, vscode.DiagnosticSeverity.Warning));
         }
-    });
+    }
+    varDiagnostic.set(doc.uri, diagnositc);
 }
+exports.refreshDiagnostic = refreshDiagnostic;
 //# sourceMappingURL=diagnostics.js.map

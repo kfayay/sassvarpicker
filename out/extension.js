@@ -2,11 +2,14 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ColorPropertyPicker = exports.activate = void 0;
 const vscode = require("vscode");
+const config_1 = require("./config");
+const diagnostics_1 = require("./diagnostics");
 function activate(context) {
-    // const varFilePath = vscode.workspace
-    //   .getConfiguration('sassvarpicker')
-    //   .get('varFilePath');
-    context.subscriptions.push(vscode.languages.registerCodeActionsProvider("scss", new ColorPropertyPicker(), {
+    const colorVars = (0, config_1.getColorVars)();
+    const varDiagnostic = vscode.languages.createDiagnosticCollection('sass-var');
+    context.subscriptions.push(varDiagnostic);
+    (0, diagnostics_1.subscriptionDocumentChange)(context, varDiagnostic, colorVars);
+    context.subscriptions.push(vscode.languages.registerCodeActionsProvider('scss', new ColorPropertyPicker(), {
         providedCodeActionKinds: ColorPropertyPicker.providedCodeACtionKinds,
     }));
 }
@@ -20,7 +23,7 @@ class ColorPropertyPicker {
         if (!this.isCursorInColorProperty(document, range)) {
             return;
         }
-        const replaceColor = this.createFix(document, range, "$test");
+        const replaceColor = this.createFix(document, range, '$test');
         return [replaceColor];
     }
     // 定义一个函数来判断当前行是否存在 css 颜色属性，并且光标是否在颜色属性区间内
@@ -39,14 +42,12 @@ class ColorPropertyPicker {
         return start.character >= colorStart && start.character <= colorEnd;
     }
     createFix(document, range, color) {
-        const fix = new vscode.CodeAction("Convert color to variable", vscode.CodeActionKind.QuickFix);
+        const fix = new vscode.CodeAction('Convert color to variable', vscode.CodeActionKind.QuickFix);
         fix.edit = new vscode.WorkspaceEdit();
         fix.edit.replace(document.uri, new vscode.Range(range.start, range.start.translate(0, 7)), color);
         return fix;
     }
 }
 exports.ColorPropertyPicker = ColorPropertyPicker;
-ColorPropertyPicker.providedCodeACtionKinds = [
-    vscode.CodeActionKind.QuickFix,
-];
+ColorPropertyPicker.providedCodeACtionKinds = [vscode.CodeActionKind.QuickFix];
 //# sourceMappingURL=extension.js.map

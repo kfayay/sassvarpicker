@@ -1,32 +1,27 @@
-import * as vscode from "vscode";
+import * as vscode from 'vscode';
+import { getColorVars } from './config';
+import { subscriptionDocumentChange } from './diagnostics';
 
-import type { VariableInfo } from "./model";
+import type { VariableInfo } from './model';
 
 export function activate(context: vscode.ExtensionContext) {
-  // const varFilePath = vscode.workspace
-  //   .getConfiguration('sassvarpicker')
-  //   .get('varFilePath');
+  const colorVars = getColorVars();
+  const varDiagnostic = vscode.languages.createDiagnosticCollection('sass-var');
+
+  context.subscriptions.push(varDiagnostic);
+  subscriptionDocumentChange(context, varDiagnostic, colorVars);
 
   context.subscriptions.push(
-    vscode.languages.registerCodeActionsProvider(
-      "scss",
-      new ColorPropertyPicker(),
-      {
-        providedCodeActionKinds: ColorPropertyPicker.providedCodeACtionKinds,
-      }
-    )
+    vscode.languages.registerCodeActionsProvider('scss', new ColorPropertyPicker(), {
+      providedCodeActionKinds: ColorPropertyPicker.providedCodeACtionKinds,
+    })
   );
 }
 
 export class ColorPropertyPicker implements vscode.CodeActionProvider {
-  public static readonly providedCodeACtionKinds = [
-    vscode.CodeActionKind.QuickFix,
-  ];
+  public static readonly providedCodeACtionKinds = [vscode.CodeActionKind.QuickFix];
 
-  constructor(
-    private varList: VariableInfo[] = [],
-    private pathList: string[] = []
-  ) {}
+  constructor(private varList: VariableInfo[] = [], private pathList: string[] = []) {}
 
   public provideCodeActions(
     document: vscode.TextDocument,
@@ -38,20 +33,16 @@ export class ColorPropertyPicker implements vscode.CodeActionProvider {
       return;
     }
 
-    const replaceColor = this.createFix(document, range, "$test");
+    const replaceColor = this.createFix(document, range, '$test');
 
     return [replaceColor];
   }
 
   // 定义一个函数来判断当前行是否存在 css 颜色属性，并且光标是否在颜色属性区间内
-  private isCursorInColorProperty(
-    document: vscode.TextDocument,
-    range: vscode.Range
-  ) {
+  private isCursorInColorProperty(document: vscode.TextDocument, range: vscode.Range) {
     const start = range.start;
     const lineText = document.lineAt(start.line).text;
-    const colorRegex =
-      /(#(?:[a-f\d]{3}){1,2}|rgb\(\d{1,3},\s*\d{1,3},\s*\d{1,3}\)|efQ6qDy8J6VDiYXrgba\(\d{1,3},\s*\d{1,3},\s*\d{1,3},\s*(?:0?\.\d+|1)\))/i;
+    const colorRegex = /(#(?:[a-f\d]{3}){1,2}|rgb\(\d{1,3},\s*\d{1,3},\s*\d{1,3}\)|efQ6qDy8J6VDiYXrgba\(\d{1,3},\s*\d{1,3},\s*\d{1,3},\s*(?:0?\.\d+|1)\))/i;
     const match = colorRegex.exec(lineText);
 
     if (!match) {
@@ -65,21 +56,10 @@ export class ColorPropertyPicker implements vscode.CodeActionProvider {
     return start.character >= colorStart && start.character <= colorEnd;
   }
 
-  private createFix(
-    document: vscode.TextDocument,
-    range: vscode.Range,
-    color: string
-  ): vscode.CodeAction {
-    const fix = new vscode.CodeAction(
-      "Convert color to variable",
-      vscode.CodeActionKind.QuickFix
-    );
+  private createFix(document: vscode.TextDocument, range: vscode.Range, color: string): vscode.CodeAction {
+    const fix = new vscode.CodeAction('Convert color to variable', vscode.CodeActionKind.QuickFix);
     fix.edit = new vscode.WorkspaceEdit();
-    fix.edit.replace(
-      document.uri,
-      new vscode.Range(range.start, range.start.translate(0, 7)),
-      color
-    );
+    fix.edit.replace(document.uri, new vscode.Range(range.start, range.start.translate(0, 7)), color);
 
     return fix;
   }

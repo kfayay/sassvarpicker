@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.refreshDiagnostic = void 0;
+exports.subscriptionDocumentChange = exports.refreshDiagnostic = void 0;
 const vscode = require("vscode");
 /**
  * 样式变量检测
@@ -31,4 +31,10 @@ function refreshDiagnostic(doc, varDiagnostic, colorVars) {
     varDiagnostic.set(doc.uri, diagnositc);
 }
 exports.refreshDiagnostic = refreshDiagnostic;
+function subscriptionDocumentChange(context, varDiagnostics, colorVars) {
+    if (vscode.window.activeTextEditor) {
+        refreshDiagnostic(vscode.window.activeTextEditor.document, varDiagnostics, colorVars);
+    }
+}
+exports.subscriptionDocumentChange = subscriptionDocumentChange;
 //# sourceMappingURL=diagnostics.js.map

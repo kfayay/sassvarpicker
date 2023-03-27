@@ -3,18 +3,21 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getColorVars = void 0;
 const fs = require("fs");
 const path = require("path");
+const vscode = require("vscode");
 function getColorVars() {
     let config;
     try {
-        config = JSON.parse(fs.readFileSync(path.join(__dirname, "../sassvarpickerc.json"), "utf-8"));
+        const workspaceFolders = vscode.workspace.workspaceFolders;
+        const workspacePath = workspaceFolders?.[0]?.uri.path;
+        config = JSON.parse(fs.readFileSync(path.join(workspacePath || __dirname, './sassvarpickerc.json'), 'utf-8'));
     }
     catch (error) {
-        console.error("Error reading config file:", error);
+        console.error('Error reading config file:', error);
         return [];
     }
     const colors = [];
     config.scssPaths.forEach(({ path: scssPath, alias }) => {
-        const scssContent = fs.readFileSync(scssPath, "utf-8");
+        const scssContent = fs.readFileSync(scssPath, 'utf-8');
         const colorRegex = /\$([a-zA-Z0-9_-]+):\s*(#[a-zA-Z0-9]+);/g;
         let match;
         while ((match = colorRegex.exec(scssContent)) !== null) {
